@@ -51,15 +51,15 @@ object Chosen {
 
     val maxCandidates: Int = 10
     val rxFilteredCandidates =
-      (queryEvents |@| candidates).map { case (query, allCandidates) =>
+      (queryEvents, candidates).mapN { case (query, allCandidates) =>
         allCandidates.filter(Searcheable[T].show(_).toLowerCase.contains(query.toLowerCase))
       }
 
     val rxIndex: Rx[Int] = (
         arrowPressedEvents.map(Option(_)) |+|
-        focusEvents.map(_ => None)        |@|
+        focusEvents.map(_ => None)       ,
         rxFilteredCandidates
-      ).map { case (event, filteredCandidates) =>
+      ).mapN { case (event, filteredCandidates) =>
         (event, filteredCandidates.size - 1)
       }.foldp(0) {
         case (last, (Some(delta), limit)) =>
@@ -75,7 +75,7 @@ object Chosen {
       clickSelectionEvents.map(_ => false)
 
     val rxHighlightedCandidate: Rx[Option[T]] =
-      (rxFilteredCandidates |@| rxIndex).map { case (cands, index) =>
+      (rxFilteredCandidates, rxIndex).mapN { case (cands, index) =>
         cands.zipWithIndex.find(_._2 == index).map(_._1)
       }.keepIf(_.nonEmpty)(None)
 
@@ -83,7 +83,7 @@ object Chosen {
       rxHighlightedCandidate.sampleOn(enterPressedEvents) |+| clickSelectionEvents
 
     val rxChosenOptions: Rx[Node] =
-      (rxIndex |@| rxFocused |@| queryEvents |@| rxFilteredCandidates).map {
+      (rxIndex, rxFocused, queryEvents, rxFilteredCandidates).mapN {
         case(index, focus, query, fcand) =>
           def bounds(i: Int): Int = if (fcand.size > maxCandidates) i max 0 else 0
           val toDrop = bounds(index - 3)
