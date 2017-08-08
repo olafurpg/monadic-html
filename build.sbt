@@ -2,7 +2,7 @@ val scalajsdom = "0.9.1"
 val scalatest  = "3.0.1"
 val cats       = "0.9.0"
 
-crossScalaVersions in ThisBuild := Seq("2.12.1", "2.11.8")
+crossScalaVersions in ThisBuild := Seq("2.12.2", "2.11.11")
 scalaVersion       in ThisBuild := crossScalaVersions.value.head
 
 lazy val root = project.in(file("."))
