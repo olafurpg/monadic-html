@@ -1,11 +1,13 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-val scalajsdom = "0.9.7"
-val scalatest  = "3.0.8"
-val cats       = "2.0.0"
+val scalajsdom = "1.1.0"
+val scalatest  = "3.2.2"
+val cats       = "2.2.0"
 
-crossScalaVersions in ThisBuild := Seq("2.13.1", "2.12.10")
-scalaVersion       in ThisBuild := crossScalaVersions.value.head
+scalaJSLinkerConfig in ThisBuild ~= { _.withSourceMap(true) }
+crossScalaVersions  in ThisBuild := Seq("2.13.3", "2.12.12")
+scalaVersion        in ThisBuild := crossScalaVersions.value.head
+organization        in ThisBuild := "com.geirsson"
 
 lazy val root = project.in(file("."))
   .aggregate(
@@ -24,7 +26,7 @@ lazy val `monadic-html` = project
   .settings(publishSettings: _*)
   .settings(testSettings: _*)
   .settings(libraryDependencies += "org.scala-js"  %%% "scalajs-dom" % scalajsdom)
-  .settings(libraryDependencies += "org.scalatest" %%% "scalatest" % scalatest % "test")
+  .settings(libraryDependencies += "org.scalatest" %%% "scalatest" % scalatest % Test)
   .dependsOn(`monadic-rx-catsJS` % "test->compile")
 
 lazy val `monadic-rxJS`  = `monadic-rx`.js
@@ -34,7 +36,7 @@ lazy val `monadic-rx`    = crossProject(JSPlatform, JVMPlatform)
   .jsSettings(publishSettings: _*)
   .jvmSettings(noPublishSettings: _*)
   .jsSettings(testSettings: _*)
-  .settings(libraryDependencies += "org.scalatest" %%% "scalatest" % scalatest % "test")
+  .settings(libraryDependencies += "org.scalatest" %%% "scalatest" % scalatest % Test)
 
 lazy val `monadic-rx-catsJS`  = `monadic-rx-cats`.js
 lazy val `monadic-rx-catsJVM` = `monadic-rx-cats`.jvm
@@ -50,12 +52,11 @@ lazy val `examples` = project
   .dependsOn(`monadic-html`, `monadic-rx-catsJS`)
   .settings(noPublishSettings: _*)
   .settings(
-    test := {},
-    emitSourceMaps := true,
-    libraryDependencies += "com.github.japgolly.scalacss" %%% "core" % "0.6.0-RC1",
-    artifactPath in (Compile, fastOptJS) :=
-      ((crossTarget in (Compile, fastOptJS)).value /
-        ((moduleName in fastOptJS).value + "-opt.js")))
+    test in Test := {},
+    libraryDependencies += "com.github.japgolly.scalacss" %%% "core" % "0.6.1",
+    artifactPath in (Compile, fastLinkJS) :=
+      ((crossTarget in (Compile, fastLinkJS)).value /
+        ((moduleName in fastLinkJS).value + "-opt.js")))
 
 scalacOptions in ThisBuild := Seq(
   "-deprecation",
@@ -67,7 +68,6 @@ scalacOptions in ThisBuild := Seq(
   "-Ywarn-numeric-widen",
   "-Ywarn-value-discard")
 
-organization in ThisBuild := "in.nvilla"
 
 lazy val testSettings = Seq(
   testOptions  in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
