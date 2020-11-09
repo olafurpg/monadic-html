@@ -12,5 +12,5 @@ jobs:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v10
       - run: npm install jsdom
-      - run: sbt test
-      - run: sbt 'set every scalaJSStage := FullOptStage' test
+      - run: sbt +test
+      - run: sbt 'set every scalaJSStage := FullOptStage' +test
